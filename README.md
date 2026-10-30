@@ -97,12 +97,12 @@ npm install
 Create a `.env` file in the project root and define values similar to the following:
 
 ```bash
-DATABASE_URL="postgresql://user:password@localhost:5432/article_agent"
+DATABASE_URL="postgresql://user:password@HOST:PORT/DB"
 GEMINI_API_KEY="your-gemini-api-key"
 GOOGLE_CLIENT_ID="your-google-client-id"
 GOOGLE_CLIENT_SECRET="your-google-client-secret"
-GOOGLE_REDIRECT_URI="http://localhost:3000/api/google/callback"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
+GOOGLE_REDIRECT_URI="HOST/api/google/callback"
+NEXT_PUBLIC_APP_URL="http://HOST:PORT"
 ```
 
 If you use a different database provider or deployment setup, adjust the `DATABASE_URL` accordingly.
@@ -122,7 +122,7 @@ npm run dev
 Then open:
 
 ```text
-http://localhost:3000
+http://HOST:3000
 ```
 
 ## Available Scripts
