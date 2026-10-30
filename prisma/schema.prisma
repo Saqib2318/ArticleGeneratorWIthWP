@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client"
+  output = "../app/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String?
+  projects     Project[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Project {
+  id                 String              @id @default(uuid())
+  name               String
+  description        String?
+  systemInstructions String              @default("")
+  targetWords        Int                 @default(1500)
+  researchEnabled    Boolean             @default(false)
+  ownerId            String
+  owner              User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  wpConfig           ProjectWpConfig?
+  sheet              ProjectSheet?
+  articles           GeneratedArticle[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+}
+
+model ProjectWpConfig {
+  id                  String  @id @default(uuid())
+  wpUrl               String
+  username            String
+  applicationPassword String
+  seoPlugin           String  @default("rankmath") // rankmath | yoast
+  projectId           String  @unique
+  project             Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model ProjectSheet {
+  id                 String  @id @default(uuid())
+  spreadsheetUrlOrId String
+  sheetName          String  @default("Keyword Cluster Plan")
+  projectId          String  @unique
+  project            Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model GeneratedArticle {
+  id             Int      @id @default(autoincrement())
+  projectId      String
+  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sheetRow       Int?
+  title          String
+  primaryKeyword String?
+  summary        String?
+  markdown       String
+  headings       Json?
+  seo            Json?
+  wordCount      Int      @default(0)
+  duplicateRisk  Boolean  @default(false)
+  similarTo      String?
+  status         String   @default("generated") // generated | needs_review | published | failed
+  wpPostId       Int?
+  wpLink         String?
+  createdAt      DateTime @default(now())
+}
+
+model BackgroundJob {
+  id          String   @id @default(uuid())
+  projectId   String
+  type        String   // generate_batch | generate_one | publish_draft | import_gdoc
+  status      String   @default("queued") // queued | running | completed | failed
+  progress    Int      @default(0) // 0-100
+  total       Int      @default(0)
+  done        Int      @default(0)
+  message     String?
+  error       String?
+  result      Json?
+  payload     Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Per-user Google OAuth (Sheets + Docs). One connection can be used across projects.
+model GoogleConnection {
+  id           String   @id @default(uuid())
+  ownerId      String
+  email        String?  // Google account email
+  accessToken  String
+  refreshToken String
+  expiryDate   BigInt?  // ms timestamp
+  scope        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([ownerId])
+}
